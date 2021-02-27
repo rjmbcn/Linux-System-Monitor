@@ -1,13 +1,13 @@
 # Linux System Monitor App using C++
 
-The goal of the project is to create an Htop like system monitor for Linux. 
+The goal of the project is to create an [Htop](https://htop.dev/) like system monitor for Linux. 
 I am building the app using the starter code for the System Monitor Project in the [Udacity C++ Nanodegree Program](https://github.com/udacity/CppND-System-Monitor-Project-Updated.git). At the moment my implementation looks like this
 
 ![System Monitor](images/animated_monitor.gif)
 
 ## Dependencies 
 
-The app codebase was tested in the Udacity browser-based Linux Workspace [Workspace](https://engineering.udacity.com/creating-a-gpu-enhanced-virtual-desktop-for-udacity-497bdd91a505). The specs are shown in the image above.  
+The app codebase was tested in the Udacity browser-based Linux [Workspace](https://engineering.udacity.com/creating-a-gpu-enhanced-virtual-desktop-for-udacity-497bdd91a505). The specs are shown in the image above.  
 
 **TODO** *Update this to reflect dependencies in local machine.*  
 
