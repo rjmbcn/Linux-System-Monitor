@@ -1,9 +1,3 @@
 debug_simple/
 images/.DS_Store
 .DS_Store
-monitor
-a.out
-settings.json
-*.o
-build/*
-*.json

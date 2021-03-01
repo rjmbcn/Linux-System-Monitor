@@ -19,7 +19,8 @@ float LinuxParser::MemoryUtilization() {
   string line;
   string key;
   string value;
-  float MemTotal, MemFree;
+  float MemTotal {1};
+  float MemFree {0};
   std::ifstream filestream("/proc/meminfo");
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
@@ -29,7 +30,7 @@ float LinuxParser::MemoryUtilization() {
         if (key == "MemTotal") {
           MemTotal =  std::stof(value);
         }
-        if (key == "MemFree") {
+        else if (key == "MemFree") {
           MemFree =  std::stof(value);
         }
       }
@@ -50,15 +51,16 @@ long LinuxParser::UpTime() {
 
   string line;
   string uptime;
-  string iddletime;
   
   std::ifstream stream("/proc/uptime");
   if (stream.is_open()) {
     std::getline(stream, line);
     std::istringstream linestream(line);
-    linestream >> uptime >> iddletime ;
+    if(linestream >> uptime){
+      return std::stoi(uptime);
+    }
   }
-  return std::stol(uptime);
+  return 0;
   }
 
 // BONUS: Update this to use std::filesystem
@@ -91,12 +93,11 @@ int LinuxParser::RunningProcesses() {
   string line;
   string key;
   string value;
-  int proc_running =0;
+  int proc_running {0};
   
   std::ifstream filestream("/proc/stat");
   if (filestream.is_open()) {
     while (std::getline(filestream, line)) {
-      // std::replace(line.begin(), line.end(), ':', ' ');
       std::istringstream linestream(line);
       while (linestream >> key >> value) {
         if (key == "procs_running") {
@@ -158,16 +159,15 @@ string LinuxParser::Command(int pid) {
     std::getline(stream, line);
     std::istringstream linestream(line);
     linestream >> cmd_line;
+    return cmd_line;
   }
-
-  return cmd_line; }
+  else return string(""); }
 
 // Read and return the memory used by a process
 string LinuxParser::Ram(int pid) { 
   string line;
   string key;
   string value;
-  string ram;
   
   std::ifstream filestream("/proc/" + std::to_string(pid) + "/status");
   
@@ -177,19 +177,18 @@ string LinuxParser::Ram(int pid) {
       std::istringstream linestream(line);
       while (linestream >> key >> value) {
         if (key == "VmSize") {
-          ram = value;
+          return value;
         }
       }
     }
   }
-  return ram;
+  return string("0");
 }
 // Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) { 
   string line;
   string key;
   string value;
-  string uid;
   
   std::ifstream filestream("/proc/" + std::to_string(pid) + "/status");
   
@@ -200,12 +199,12 @@ string LinuxParser::Uid(int pid) {
       while (linestream >> key >> value) {
         // std::cout << key << value << std::endl;
         if (key == "Uid") {
-           uid = value;
+           return value;
         }
       }
     }
   }
-  return uid;
+  return string("");
 }
 
 // Read and return the user associated with a process
@@ -223,29 +222,19 @@ string LinuxParser::User(int pid) {
         return username;
       }
     }
-  return "Error: could not open file!";
+  return string("");
 }
 // Read and return the uptime of a process
 long LinuxParser::UpTime(int pid) { 
-  string line, value;
-  long pid_on_time, sys_uptime;
-  long pid_uptime =0;
-  std::ifstream file("/proc/" + to_string(pid) + "/stat");
-  
-  if (file.is_open()){
-    while( getline(file,line) ){
-      std::istringstream linestream(line);
-        for (int i =1; i<23; i++){
-          linestream >> value;
-        }
-    }
-    file.close();
-    pid_on_time = std::stol(value)/sysconf(_SC_CLK_TCK);
-    sys_uptime = UpTime();
-    pid_uptime = sys_uptime - pid_on_time; 
-    return pid_uptime;
-  }
-  return pid_uptime;
+ // this agrees with the output of htop and ps -eo pid,bstime (see: https://man7.org/linux/man-pages/man1/ps.1.html) 
+  int user_mode {0};
+  int kernel_mode {0};
+  int cpu_times {0};
+  user_mode   = stoi( LinuxParser::pid_stat(pid, 14) );
+  kernel_mode = stoi( LinuxParser::pid_stat(pid, 15) );
+
+  cpu_times = (user_mode + kernel_mode)/sysconf(_SC_CLK_TCK);
+  return cpu_times;
 }
 
 // Read the stat file of process pid and return the value at position
@@ -282,11 +271,10 @@ std::vector<long> LinuxParser::PIDCpuStats(int pid){
   
   stats.push_back(total_time_in_seconds);
 
-  seconds = UpTime() - starttime/sysconf(_SC_CLK_TCK);
+  seconds = LinuxParser::UpTime() - starttime/sysconf(_SC_CLK_TCK);
   stats.push_back(seconds);
 
   return stats;
-
 }
 
 float LinuxParser::PID_CpuUtilization(int pid){
